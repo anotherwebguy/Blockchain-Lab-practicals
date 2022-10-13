@@ -1,0 +1,95 @@
+// EXP 4: block and blockchsain using JS
+
+// block.js
+const { GENESIS_DATA } = require('./genesis.js');
+const cryptoHash = require('./crypto-hash');
+class Block {
+    constructor({timestamp, lastHash, hash, data}) {
+        this.timestamp = timestamp;
+        this.lastHash = lastHash;
+        this.hash = hash;
+        this.data = data;
+    }
+    static genesis() {
+        return new this(GENESIS_DATA);
+    }
+    static mineBlock({lastBlock, data}) {
+        const timestamp = Date.now();
+        const lastHash = lastBlock.hash;
+        return new this({
+            timestamp,
+lastHash,
+            data,
+            hash: cryptoHash(timestamp, lastHash, data)
+        });
+    }
+}
+module.exports = Block;
+
+// blockchain.js
+const Block = require('./block');
+class Blockchain {
+    constructor() {
+        this.chain = [Block.genesis()];
+    }
+    addBlock({ data }) {
+        const newBlock = Block.mineBlock({
+            lastBlock: this.chain[this.chain.length-1],
+            data
+        });
+        this.chain.push(newBlock);
+    }
+}
+module.exports = Blockchain;
+
+// server.js
+const Blockchain = require('./blockchain');
+const Block = require('./block');
+const blockchain = new Blockchain();
+for(let i=0; i<5; i++) {
+    const newData = 'Dinesh'+i;
+    blockchain.addBlock({data: newData});
+}
+console.log(blockchain);
+
+// genesis.js
+const GENESIS_DATA = {
+    timestamp: Date.now(),
+    lastHash: '64b7edc786326651e031a4d12d9838d279571946d8c9a5d448c70db94b0e143f',
+    hash: 'c671c84681b9d682b9fd43b2a2ef01a343eab7cfa410df9835f8165007d38467',
+    data: 'Dinesh'
+};
+module.exports = { GENESIS_DATA };
+
+// crypto-hash.js
+const crypto = require('crypto');
+const cryptoHash =(...inputs) => {
+    const hash = crypto.createHash('sha256');
+    hash.update(inputs.sort().join(' '));
+    return hash.digest('hex');
+}
+module.exports = cryptoHash;
+
+// package.json
+{
+    "name": "cryptochain",
+    "version": "1.0.0",
+    "keywords": ["util", "functional", "server", "client", "browser"],
+    "author": "admin",
+    "contributors": [],
+    "dependencies": {}
+}
+
+//package-lock.json
+{
+    "name": "cryptochain",
+    "version": "1.0.0",
+    "lockfileVersion": 2,
+    "requires": true,
+    "packages": {
+        "": {
+            "name": "cryptochain",
+            "version": "1.0.0"
+        }
+    }
+}
